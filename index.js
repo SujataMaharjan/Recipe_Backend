@@ -107,12 +107,14 @@ app.post('/send-recipe', (req, res) => {
 
 })
 
+//login validation
 app.post('/login', (req, res) => {
     email = req.body.email;
     password = req.body.password;
     if (!email || !password) {
         return res.status(422).json({ error: "Please enter the details" })
     }
+    //check if email and password matches
     User.findOne({ email: email, password: password })
         .then(savedUser => {
             if (!savedUser) {
