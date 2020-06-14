@@ -9,4 +9,5 @@ const RecipeSchema = new mongoose.Schema({
     picture:String
 })
 
-mongoose.model("recipe", RecipeSchema)
+// mongoose.model("recipe", RecipeSchema)
+module.exports = mongoose.model("recipe", RecipeSchema);
