@@ -1,8 +1,9 @@
 const express = require('express')
-const app = express()
+const app = express();
 const axios = require('axios');
-var cors = require('cors')
-const bcrypt = require("bcrypt")
+var cors = require('cors');
+const bcrypt = require("bcrypt");
+const multer = require('multer');
 
 //pass requests
 const bodyParser = require('body-parser')
@@ -10,12 +11,35 @@ const mongoose = require('mongoose')
 
 app.use(bodyParser.json())
 app.use(cors())
-
+app.use('./models/Recipe', express.static('./uploads'))
 //var to use User model
 const User = require('./models/User')
 const Recipe = require('./models/Recipe')
 
 const uri = "mongodb://Sujata:sujata123@cluster0-shard-00-00-novxb.mongodb.net:27017,cluster0-shard-00-01-novxb.mongodb.net:27017,cluster0-shard-00-02-novxb.mongodb.net:27017/db_recipe?ssl=true&replicaSet=Cluster0-shard-0&authSource=admin&retryWrites=true&w=majority";
+
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, './uploads/');
+    },
+    filename: function (req, file, cb) {
+        cb(null, file.originalname)
+    }
+});
+const fileFilter = (req, file, cb) => {
+    // reject a file
+    if (file.mimetype === 'image/jpeg' || file.mimetype === 'image/png') {
+        cb(null, true);
+    } else {
+        //does not store file
+        cb(null, false);
+    }
+}
+
+const upload = multer({
+    storage: storage,
+    fileFilter: fileFilter
+});
 
 //db connection
 mongoose.connect(uri, {
@@ -106,7 +130,7 @@ app.post('/send-user', (req, res) => {
 });
 
 app.post('/send-recipe', (req, res) => {
-    // console.log(req.body)
+    // console.log(req.body);
     // res.send("posted")
     const recipe = new Recipe({
         name: req.body.name,
@@ -114,7 +138,7 @@ app.post('/send-recipe', (req, res) => {
         ingridients: req.body.ingridients,
         instructions: req.body.instructions,
         notes: req.body.notes,
-        picture: req.body.picture
+        recipeImage: req.body.recipeImage
     })
     recipe.save()
         .then(data => {
@@ -134,25 +158,28 @@ app.post('/login', (req, res, next) => {
         .exec()
         .then(user => {
             if (!user) {
-                return res.status(404).json({ 
-                    error: "Invalid Email or password" 
+                console.log("Invalid Email or password")
+                return res.status(404).json({
+                    error: "Invalid Email or password"
                 });
             }
             // Load hash from your password DB.
             bcrypt.compare(req.body.password, user.password, (err, result) => {
                 if (err) {
-                    return res.status(404).json({ 
-                        error: "Invalid Email or password" 
+                    console.log("Invalid Email or password")
+                    return res.status(404).json({
+                        error: "Invalid Email or password"
                     });
                 }
                 if (result) {
-                    return res.json({ 
-                        message: "Login successful" 
+                    console.log("Login successful")
+                    return res.json({
+                        message: "Login successful"
                     });
 
                 }
-                res.status(422).json({ 
-                    error: "Invalid Email or password" 
+                res.status(422).json({
+                    error: "Invalid Email or password"
                 });
 
             });
@@ -163,8 +190,10 @@ app.post('/login', (req, res, next) => {
         });
 });
 
+
 app.get('/get-recipe', (req, res) => {
     Recipe.find({}).then(data => {
+        // console.log(data)
         res.send(data)
     }).catch(err => {
         console.log(err)

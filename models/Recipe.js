@@ -6,7 +6,7 @@ const RecipeSchema = new mongoose.Schema({
     ingridients:String,
     instructions:String,
     notes:String,
-    picture:String
+    recipeImage:String
 })
 
 // mongoose.model("recipe", RecipeSchema)
